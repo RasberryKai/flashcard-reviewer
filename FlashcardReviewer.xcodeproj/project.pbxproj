@@ -1,0 +1,516 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3A591E9E86EF2DCD1CF71273 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB165F2B4A241F84063EAE2 /* AppModel.swift */; };
+		448420DC4468BD24FEA638A7 /* FlashcardDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4C478917D7921C00A6FEE3 /* FlashcardDomainTests.swift */; };
+		5C8A9AC1ECA054D1BE4DA2ED /* FlashcardReviewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7AD8F5F5D90418F757A013E /* FlashcardReviewerApp.swift */; };
+		6DB2AF7A1A3ACC20B0C3D381 /* AppModelPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A782986E70C11A58FDF826E /* AppModelPersistenceTests.swift */; };
+		86417C60045FFE5E92A58808 /* FlashcardDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F41BD8386492495A8F81E1 /* FlashcardDomain.swift */; };
+		8A5EB99819F02A246EB45E7C /* ImportDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3FAEF0E0BE92F12595C6A4 /* ImportDiagnosticsView.swift */; };
+		8CFA68CA448104CDD65483A3 /* FlashcardReviewer.icns in Resources */ = {isa = PBXBuildFile; fileRef = 8F36206822A5763797F01374 /* FlashcardReviewer.icns */; };
+		92190D2B5812F954EB9E2773 /* ReviewShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49DC66DC27DD8B2BD2AC5C7 /* ReviewShortcutTests.swift */; };
+		9C3C3D4BB2D855BDA0C49E37 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBC53E62E85E79770F9BDBE /* ExportView.swift */; };
+		B52718BB5CD4E1AFCD2B09F0 /* flashcard-reviewer-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = C96A348B2D9570567E44489D /* flashcard-reviewer-logo.png */; };
+		B7D0EC4BEF81CBEBF6E028F4 /* MathPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF248BE5CAFF809A2885070A /* MathPreviewView.swift */; };
+		D4FA5003A80BEF8F3DE4F2ED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04234DE8BDC603A49881CF1 /* RootView.swift */; };
+		E06A31EEECC42D143C61DD6C /* MathJax in Resources */ = {isa = PBXBuildFile; fileRef = 2B93B859998E6B1F7A5BCEFC /* MathJax */; };
+		E9EC4312A5EA2FF5AAFE6A61 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E913CAE4AFBC72DBA09E5E8B /* DesignSystem.swift */; };
+		F8A92A23D040F86A2045DF75 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5C06055D2BCDC1B59B2024 /* ReviewView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		584D95AE85944DF7B840B190 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11A08FAC5C0BE6FE408AAF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DACE41A8AAC0C4BBB6401271;
+			remoteInfo = FlashcardReviewer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2B93B859998E6B1F7A5BCEFC /* MathJax */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MathJax; path = Sources/FlashcardEvaluatorApp/Resources/MathJax; sourceTree = SOURCE_ROOT; };
+		4A782986E70C11A58FDF826E /* AppModelPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelPersistenceTests.swift; sourceTree = "<group>"; };
+		4D4C478917D7921C00A6FEE3 /* FlashcardDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardDomainTests.swift; sourceTree = "<group>"; };
+		8E3FAEF0E0BE92F12595C6A4 /* ImportDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportDiagnosticsView.swift; sourceTree = "<group>"; };
+		8F36206822A5763797F01374 /* FlashcardReviewer.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = FlashcardReviewer.icns; sourceTree = "<group>"; };
+		9E90D87C2C2B1D1AC00D6A83 /* FlashcardReviewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlashcardReviewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4F41BD8386492495A8F81E1 /* FlashcardDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardDomain.swift; sourceTree = "<group>"; };
+		BE5C06055D2BCDC1B59B2024 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		BF2D8F08F600F8C1FD047F3A /* FlashcardReviewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlashcardReviewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C04234DE8BDC603A49881CF1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		C96A348B2D9570567E44489D /* flashcard-reviewer-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "flashcard-reviewer-logo.png"; sourceTree = "<group>"; };
+		CDBC53E62E85E79770F9BDBE /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
+		DCB165F2B4A241F84063EAE2 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		E49DC66DC27DD8B2BD2AC5C7 /* ReviewShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewShortcutTests.swift; sourceTree = "<group>"; };
+		E913CAE4AFBC72DBA09E5E8B /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		F7AD8F5F5D90418F757A013E /* FlashcardReviewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReviewerApp.swift; sourceTree = "<group>"; };
+		FF248BE5CAFF809A2885070A /* MathPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathPreviewView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0BEDF4F138C61F5934C585B4 /* FlashcardEvaluatorApp */ = {
+			isa = PBXGroup;
+			children = (
+				DCB165F2B4A241F84063EAE2 /* AppModel.swift */,
+				E913CAE4AFBC72DBA09E5E8B /* DesignSystem.swift */,
+				CDBC53E62E85E79770F9BDBE /* ExportView.swift */,
+				A4F41BD8386492495A8F81E1 /* FlashcardDomain.swift */,
+				F7AD8F5F5D90418F757A013E /* FlashcardReviewerApp.swift */,
+				8E3FAEF0E0BE92F12595C6A4 /* ImportDiagnosticsView.swift */,
+				FF248BE5CAFF809A2885070A /* MathPreviewView.swift */,
+				BE5C06055D2BCDC1B59B2024 /* ReviewView.swift */,
+				C04234DE8BDC603A49881CF1 /* RootView.swift */,
+				400F141FD996F98D3FF8FA3A /* Resources */,
+			);
+			path = FlashcardEvaluatorApp;
+			sourceTree = "<group>";
+		};
+		3E8225A2BBC2599FB80E0D4E /* Brand */ = {
+			isa = PBXGroup;
+			children = (
+				8F36206822A5763797F01374 /* FlashcardReviewer.icns */,
+			);
+			path = Brand;
+			sourceTree = "<group>";
+		};
+		400F141FD996F98D3FF8FA3A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C96A348B2D9570567E44489D /* flashcard-reviewer-logo.png */,
+				2B93B859998E6B1F7A5BCEFC /* MathJax */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		529B5141E5F0C6A2A488BA93 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9E90D87C2C2B1D1AC00D6A83 /* FlashcardReviewer.app */,
+				BF2D8F08F600F8C1FD047F3A /* FlashcardReviewerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		94EF4931659035ECF73E1515 = {
+			isa = PBXGroup;
+			children = (
+				BC54EA481FC0FCAB79DFBB28 /* Assets */,
+				F2DD0BD678721377AE4F5B39 /* Sources */,
+				D763A3AFD6B078EFBA953DC4 /* Tests */,
+				529B5141E5F0C6A2A488BA93 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BC54EA481FC0FCAB79DFBB28 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				3E8225A2BBC2599FB80E0D4E /* Brand */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		D763A3AFD6B078EFBA953DC4 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				F96EC34C82A8A6126F565BDF /* FlashcardReviewerTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		F2DD0BD678721377AE4F5B39 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				0BEDF4F138C61F5934C585B4 /* FlashcardEvaluatorApp */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		F96EC34C82A8A6126F565BDF /* FlashcardReviewerTests */ = {
+			isa = PBXGroup;
+			children = (
+				4A782986E70C11A58FDF826E /* AppModelPersistenceTests.swift */,
+				4D4C478917D7921C00A6FEE3 /* FlashcardDomainTests.swift */,
+				E49DC66DC27DD8B2BD2AC5C7 /* ReviewShortcutTests.swift */,
+			);
+			path = FlashcardReviewerTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4999AAB5DB9FF5B06DA8F9C2 /* FlashcardReviewerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA186697D7F49D7E8445CD18 /* Build configuration list for PBXNativeTarget "FlashcardReviewerTests" */;
+			buildPhases = (
+				7D9F7D91167431AF9E667438 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0E13821B59EE7FF75BCBCDE3 /* PBXTargetDependency */,
+			);
+			name = FlashcardReviewerTests;
+			packageProductDependencies = (
+			);
+			productName = FlashcardReviewerTests;
+			productReference = BF2D8F08F600F8C1FD047F3A /* FlashcardReviewerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DACE41A8AAC0C4BBB6401271 /* FlashcardReviewer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 374D0E2ABF4FFC74054808E6 /* Build configuration list for PBXNativeTarget "FlashcardReviewer" */;
+			buildPhases = (
+				D7526DB8927EE6E6B518789E /* Sources */,
+				ACB0654D6F9551E162B4190B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FlashcardReviewer;
+			packageProductDependencies = (
+			);
+			productName = FlashcardReviewer;
+			productReference = 9E90D87C2C2B1D1AC00D6A83 /* FlashcardReviewer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A11A08FAC5C0BE6FE408AAF7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					4999AAB5DB9FF5B06DA8F9C2 = {
+						ProvisioningStyle = Manual;
+					};
+					DACE41A8AAC0C4BBB6401271 = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 63308754DD93BD5E9CAABFA5 /* Build configuration list for PBXProject "FlashcardReviewer" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 94EF4931659035ECF73E1515;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 529B5141E5F0C6A2A488BA93 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DACE41A8AAC0C4BBB6401271 /* FlashcardReviewer */,
+				4999AAB5DB9FF5B06DA8F9C2 /* FlashcardReviewerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		ACB0654D6F9551E162B4190B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CFA68CA448104CDD65483A3 /* FlashcardReviewer.icns in Resources */,
+				E06A31EEECC42D143C61DD6C /* MathJax in Resources */,
+				B52718BB5CD4E1AFCD2B09F0 /* flashcard-reviewer-logo.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7D9F7D91167431AF9E667438 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6DB2AF7A1A3ACC20B0C3D381 /* AppModelPersistenceTests.swift in Sources */,
+				448420DC4468BD24FEA638A7 /* FlashcardDomainTests.swift in Sources */,
+				92190D2B5812F954EB9E2773 /* ReviewShortcutTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7526DB8927EE6E6B518789E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3A591E9E86EF2DCD1CF71273 /* AppModel.swift in Sources */,
+				E9EC4312A5EA2FF5AAFE6A61 /* DesignSystem.swift in Sources */,
+				9C3C3D4BB2D855BDA0C49E37 /* ExportView.swift in Sources */,
+				86417C60045FFE5E92A58808 /* FlashcardDomain.swift in Sources */,
+				5C8A9AC1ECA054D1BE4DA2ED /* FlashcardReviewerApp.swift in Sources */,
+				8A5EB99819F02A246EB45E7C /* ImportDiagnosticsView.swift in Sources */,
+				B7D0EC4BEF81CBEBF6E028F4 /* MathPreviewView.swift in Sources */,
+				F8A92A23D040F86A2045DF75 /* ReviewView.swift in Sources */,
+				D4FA5003A80BEF8F3DE4F2ED /* RootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0E13821B59EE7FF75BCBCDE3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DACE41A8AAC0C4BBB6401271 /* FlashcardReviewer */;
+			targetProxy = 584D95AE85944DF7B840B190 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		184D9F4D5BE1A9855D01A9CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/FlashcardReviewer-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Flashcard Reviewer";
+				INFOPLIST_KEY_CFBundleIconFile = FlashcardReviewer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_LSMinimumSystemVersion = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flashcardreviewer.mac;
+				PRODUCT_NAME = FlashcardReviewer;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		82126EFE07C25D73EC9CA685 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/FlashcardReviewer-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Flashcard Reviewer";
+				INFOPLIST_KEY_CFBundleIconFile = FlashcardReviewer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_LSMinimumSystemVersion = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.flashcardreviewer.mac;
+				PRODUCT_NAME = FlashcardReviewer;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		B9826CDB8D6E6FDC69DDFD98 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BB22F9C1730C47659DCE5F82 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.flashcardreviewer.mac.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FlashcardReviewer.app/Contents/MacOS/FlashcardReviewer";
+			};
+			name = Release;
+		};
+		C62450300D0CBDE1E457933D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.flashcardreviewer.mac.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FlashcardReviewer.app/Contents/MacOS/FlashcardReviewer";
+			};
+			name = Debug;
+		};
+		D205119246A08A61E522E08E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		374D0E2ABF4FFC74054808E6 /* Build configuration list for PBXNativeTarget "FlashcardReviewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				82126EFE07C25D73EC9CA685 /* Debug */,
+				184D9F4D5BE1A9855D01A9CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		63308754DD93BD5E9CAABFA5 /* Build configuration list for PBXProject "FlashcardReviewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9826CDB8D6E6FDC69DDFD98 /* Debug */,
+				D205119246A08A61E522E08E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FA186697D7F49D7E8445CD18 /* Build configuration list for PBXNativeTarget "FlashcardReviewerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C62450300D0CBDE1E457933D /* Debug */,
+				BB22F9C1730C47659DCE5F82 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A11A08FAC5C0BE6FE408AAF7 /* Project object */;
+}

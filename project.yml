@@ -1,0 +1,78 @@
+name: FlashcardReviewer
+options:
+  bundleIdPrefix: com.flashcardreviewer
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  FlashcardReviewer:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/FlashcardEvaluatorApp
+        excludes:
+          - Resources/**
+      - path: Sources/FlashcardEvaluatorApp/Resources/MathJax
+        type: folder
+        buildPhase: resources
+      - path: Assets/Brand/FlashcardReviewer.icns
+        buildPhase: resources
+      - path: Sources/FlashcardEvaluatorApp/Resources/flashcard-reviewer-logo.png
+        buildPhase: resources
+    info:
+      path: Config/FlashcardReviewer-Info.plist
+      properties:
+        CFBundleDisplayName: Flashcard Reviewer
+        CFBundleIconFile: FlashcardReviewer
+        LSApplicationCategoryType: public.app-category.education
+        LSMinimumSystemVersion: "14.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.flashcardreviewer.mac
+        PRODUCT_NAME: FlashcardReviewer
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_KEY_CFBundleDisplayName: Flashcard Reviewer
+        INFOPLIST_KEY_CFBundleIconFile: FlashcardReviewer
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+        INFOPLIST_KEY_LSMinimumSystemVersion: "14.0"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: YES
+  FlashcardReviewerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/FlashcardReviewerTests
+    dependencies:
+      - target: FlashcardReviewer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.flashcardreviewer.mac.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/FlashcardReviewer.app/Contents/MacOS/FlashcardReviewer
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: YES
+schemes:
+  FlashcardReviewer:
+    build:
+      targets:
+        FlashcardReviewer: all
+        FlashcardReviewerTests: [test]
+    run:
+      config: Debug
+      executable: FlashcardReviewer
+    test:
+      config: Debug
+      targets:
+        - FlashcardReviewerTests
