@@ -11,6 +11,26 @@ final class ReviewShortcutTests: XCTestCase {
         XCTAssertNil(ReviewShortcutMatcher.navigationDelta(keyCode: 20))
     }
 
+    func testHeldArrowKeysContinueNavigationWithoutRepeatingOtherShortcuts() {
+        for keyCode: UInt16 in [123, 124, 125, 126] {
+            XCTAssertTrue(ReviewShortcutMatcher.handlesNavigationRepeat(keyCode: keyCode))
+        }
+        XCTAssertFalse(ReviewShortcutMatcher.handlesNavigationRepeat(keyCode: 19))
+    }
+
+    func testTabMovesBetweenFrontAndBackEditorsInRequestedDirections() {
+        XCTAssertTrue(ReviewShortcutMatcher.isForwardEditorTab(keyCode: 48, modifiers: []))
+        XCTAssertTrue(ReviewShortcutMatcher.isForwardEditorTab(keyCode: 48, modifiers: [.capsLock]))
+        XCTAssertFalse(ReviewShortcutMatcher.isForwardEditorTab(keyCode: 48, modifiers: [.shift]))
+        XCTAssertFalse(ReviewShortcutMatcher.isForwardEditorTab(keyCode: 48, modifiers: [.command]))
+
+        XCTAssertTrue(ReviewShortcutMatcher.isBackwardEditorTab(keyCode: 48, modifiers: [.shift]))
+        XCTAssertTrue(ReviewShortcutMatcher.isBackwardEditorTab(keyCode: 48, modifiers: [.shift, .capsLock]))
+        XCTAssertFalse(ReviewShortcutMatcher.isBackwardEditorTab(keyCode: 48, modifiers: []))
+        XCTAssertFalse(ReviewShortcutMatcher.isBackwardEditorTab(keyCode: 48, modifiers: [.shift, .command]))
+        XCTAssertFalse(ReviewShortcutMatcher.isBackwardEditorTab(keyCode: 123, modifiers: [.shift]))
+    }
+
     @MainActor
     func testAdjustmentIsSavedImmediatelyAndNotesSurviveNavigationAndRelaunch() throws {
         let directory = FileManager.default.temporaryDirectory
@@ -70,6 +90,36 @@ final class ReviewShortcutTests: XCTestCase {
         XCTAssertFalse(ReviewShortcutMatcher.copiesCards(characters: "c", modifiers: [.command, .option]))
         XCTAssertFalse(ReviewShortcutMatcher.copiesCards(characters: "c", modifiers: [.command, .control]))
         XCTAssertFalse(ReviewShortcutMatcher.copiesCards(characters: "v", modifiers: [.command]))
+    }
+
+    func testSpaceShortcutKeysUsePhysicalKeyAndShiftForCopySelection() {
+        XCTAssertTrue(ReviewShortcutMatcher.isUnmodifiedSpace(keyCode: 49, modifiers: []))
+        XCTAssertFalse(ReviewShortcutMatcher.isUnmodifiedSpace(keyCode: 49, modifiers: [.shift]))
+        XCTAssertFalse(ReviewShortcutMatcher.isUnmodifiedSpace(keyCode: 36, modifiers: []))
+
+        XCTAssertTrue(ReviewShortcutMatcher.selectsCopySelection(keyCode: 49, modifiers: [.shift]))
+        XCTAssertTrue(ReviewShortcutMatcher.selectsCopySelection(keyCode: 49, modifiers: [.shift, .capsLock]))
+        XCTAssertFalse(ReviewShortcutMatcher.selectsCopySelection(keyCode: 49, modifiers: []))
+        XCTAssertFalse(ReviewShortcutMatcher.selectsCopySelection(keyCode: 49, modifiers: [.shift, .command]))
+        XCTAssertFalse(ReviewShortcutMatcher.selectsCopySelection(keyCode: 36, modifiers: [.shift]))
+    }
+
+    func testCommandNumberShortcutsSwitchReviewModesWithoutExtraModifiers() {
+        XCTAssertTrue(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: [.command]))
+        XCTAssertTrue(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: [.command, .capsLock]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 19, modifiers: [.command]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: []))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: [.command, .shift]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: [.command, .option]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToReviewMode(keyCode: 18, modifiers: [.command, .control]))
+
+        XCTAssertTrue(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: [.command]))
+        XCTAssertTrue(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: [.command, .capsLock]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 18, modifiers: [.command]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: []))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: [.command, .shift]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: [.command, .option]))
+        XCTAssertFalse(ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: 19, modifiers: [.command, .control]))
     }
 
     @MainActor

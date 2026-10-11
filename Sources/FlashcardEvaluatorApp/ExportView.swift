@@ -57,8 +57,8 @@ private struct MathAdaptation: Identifiable {
 
 struct ExportView: View {
     @EnvironmentObject private var model: AppModel
-    @Environment(\.dismiss) private var dismiss
     let session: FlashcardSession
+    var onDismiss: () -> Void = {}
 
     @State private var selectedKind: ExportKind = .anki
 
@@ -171,7 +171,7 @@ struct ExportView: View {
             PageHeading(title: "Export", subtitle: "Nothing leaves this Mac unless you copy or save it.")
             Spacer()
             Button {
-                dismiss()
+                onDismiss()
             } label: {
                 Label("Back to review", systemImage: "arrow.uturn.backward")
                     .labelStyle(.titleAndIcon)
@@ -323,8 +323,7 @@ struct ExportView: View {
                 .buttonStyle(.bordered)
                 .disabled(!canExport)
             Button(copyButtonTitle) { copySelectedExport() }
-                .buttonStyle(.borderedProminent)
-                .tint(ReviewerPalette.ink)
+                .buttonStyle(ReviewerPrimaryButtonStyle())
                 .disabled(!canExport)
                 .keyboardShortcut("c", modifiers: [.command])
                 .accessibilityLabel(copyButtonTitle)

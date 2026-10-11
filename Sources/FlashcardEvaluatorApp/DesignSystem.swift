@@ -1,6 +1,38 @@
 import AppKit
 import SwiftUI
 
+enum ReviewerAppearance: String {
+    case light
+    case dark
+
+    static let storageKey = "reviewerAppearance"
+    var colorScheme: ColorScheme { self == .dark ? .dark : .light }
+    var nativeAppearance: NSAppearance? {
+        NSAppearance(named: self == .dark ? .darkAqua : .aqua)
+    }
+    var toggleLabel: String { self == .dark ? "Switch to light mode" : "Switch to dark mode" }
+}
+
+struct AppearanceToggle: View {
+    @AppStorage(ReviewerAppearance.storageKey) private var appearance: ReviewerAppearance = .dark
+
+    var body: some View {
+        Button {
+            appearance = appearance == .dark ? .light : .dark
+        } label: {
+            Image(systemName: appearance == .dark ? "sun.max" : "moon")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(ReviewerPalette.text2)
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(appearance.toggleLabel)
+        .accessibilityLabel(appearance.toggleLabel)
+        .accessibilityValue(appearance == .dark ? "Dark mode" : "Light mode")
+    }
+}
+
 struct AppLogo: View {
     var size: CGFloat = 32
 
@@ -32,18 +64,53 @@ struct AppLogo: View {
 }
 
 enum ReviewerPalette {
-    static let canvas = Color(red: 0.957, green: 0.945, blue: 0.918)
-    static let surface = Color(red: 1.0, green: 0.996, blue: 0.976)
-    static let ink = Color(red: 0.14, green: 0.13, blue: 0.12)
-    static let muted = Color(red: 0.43, green: 0.41, blue: 0.38)
-    static let line = Color(red: 0.86, green: 0.83, blue: 0.78)
-    static let green = Color(red: 0.18, green: 0.44, blue: 0.32)
-    static let greenWash = Color(red: 0.88, green: 0.93, blue: 0.89)
-    static let amber = Color(red: 0.57, green: 0.37, blue: 0.08)
-    static let amberWash = Color(red: 0.96, green: 0.91, blue: 0.79)
-    static let red = Color(red: 0.66, green: 0.25, blue: 0.20)
-    static let redWash = Color(red: 0.96, green: 0.88, blue: 0.86)
-    static let grayWash = Color(red: 0.92, green: 0.90, blue: 0.86)
+    static let canvas = adaptive(light: 0xF3F0EB, dark: 0x161513)
+    static let surface = adaptive(light: 0xFCFBF8, dark: 0x1C1B18)
+    static let card = adaptive(light: 0xFFFFFF, dark: 0x1F1E1B)
+    static let sidebar = adaptive(light: 0xF3F0EB, dark: 0x1A1917)
+    static let raised = adaptive(light: 0xECE9E3, dark: 0x262521)
+    static let selected = adaptive(light: 0xFFFFFF, dark: 0x26251F)
+    static let border = adaptive(light: 0xE2DED6, dark: 0x2E2C28)
+    static let borderStrong = adaptive(light: 0xD6D1C8, dark: 0x34322D)
+    static let ink = adaptive(light: 0x1C1B19, dark: 0xECE8E0)
+    static let text2 = adaptive(light: 0x5E5A52, dark: 0xA39E92)
+    static let text3 = adaptive(light: 0x8A857A, dark: 0x8C877C)
+    static let primaryButton = adaptive(light: 0x1C1B19, dark: 0xECE8E0)
+    static let onPrimaryButton = adaptive(light: 0xFCFBF8, dark: 0x1C1B19)
+    static let good = adaptive(light: 0x3E7A57, dark: 0x5FB383)
+    static let goodBar = adaptive(light: 0x3E7A57, dark: 0x4E9A6F)
+    static let bad = adaptive(light: 0xA6463B, dark: 0xE07A6C)
+    static let amber = adaptive(light: 0x8E6A1C, dark: 0xD4A24C)
+    static let goodWash = adaptive(light: 0xE3EEE6, dark: 0x1F3328)
+    static let badWash = adaptive(light: 0xF6E7E4, dark: 0x2E1F1C)
+    static let amberWash = adaptive(light: 0xF4EEDF, dark: 0x2E2718)
+    static let accent = adaptive(light: 0x2F6FEB, dark: 0x2E6FDB)
+    static let link = adaptive(light: 0x1D5FD6, dark: 0x8FB4FF)
+    static let input = adaptive(light: 0xFFFFFF, dark: 0x141311)
+    static let track = adaptive(light: 0xE2DED6, dark: 0x3A3833)
+    static let disabled = adaptive(light: 0xB8B3A9, dark: 0x5C5850)
+
+    // Kept for existing review components while they migrate to semantic names.
+    static let muted = text2
+    static let line = border
+    static let green = good
+    static let greenWash = goodWash
+    static let red = bad
+    static let redWash = badWash
+    static let grayWash = raised
+
+    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            let value = isDark ? dark : light
+            return NSColor(
+                srgbRed: CGFloat((value >> 16) & 0xFF) / 255,
+                green: CGFloat((value >> 8) & 0xFF) / 255,
+                blue: CGFloat(value & 0xFF) / 255,
+                alpha: 1
+            )
+        }))
+    }
 }
 
 extension CardVerdict {
@@ -116,16 +183,30 @@ struct PageHeading: View {
 }
 
 struct SurfaceCard<Content: View>: View {
+    var padding: CGFloat = 20
     @ViewBuilder var content: Content
 
     var body: some View {
         content
-            .padding(20)
-            .background(ReviewerPalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(padding)
+            .background(ReviewerPalette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(ReviewerPalette.line.opacity(0.7), lineWidth: 1)
+                    .stroke(ReviewerPalette.border.opacity(0.7), lineWidth: 1)
             }
+    }
+}
+
+struct ReviewerPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(ReviewerPalette.onPrimaryButton)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(ReviewerPalette.primaryButton, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .opacity(isEnabled ? (configuration.isPressed ? 0.82 : 1) : 0.45)
     }
 }
 
@@ -141,14 +222,14 @@ struct ProgressStrip: View {
         GeometryReader { proxy in
             let segmentWidth = max(proxy.size.width - 6, 0)
             HStack(spacing: 2) {
-                segment(good, ReviewerPalette.green, segmentWidth)
+                segment(good, ReviewerPalette.goodBar, segmentWidth)
                 segment(adjustment, ReviewerPalette.amber, segmentWidth)
-                segment(bad, ReviewerPalette.red, segmentWidth)
-                segment(unreviewed, ReviewerPalette.line, segmentWidth)
+                segment(bad, ReviewerPalette.bad, segmentWidth)
+                segment(unreviewed, ReviewerPalette.track, segmentWidth)
             }
             .clipShape(Capsule())
         }
-        .frame(height: 8)
+        .frame(height: 4)
         .accessibilityLabel("Review progress")
     }
 

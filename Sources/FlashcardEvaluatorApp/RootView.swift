@@ -13,6 +13,10 @@ struct RootView: View {
             }
         }
         .background(ReviewerPalette.canvas)
+        .disabled(model.showExport)
+        .overlay {
+            exportOverlay
+        }
         .sheet(isPresented: $model.showNewSession) {
             CardImportView()
                 .environmentObject(model)
@@ -20,12 +24,6 @@ struct RootView: View {
         .sheet(isPresented: $model.showAddCards) {
             if let session = model.activeSession {
                 CardImportView(sessionID: session.id)
-                    .environmentObject(model)
-            }
-        }
-        .sheet(isPresented: $model.showExport) {
-            if let session = model.activeSession {
-                ExportView(session: session)
                     .environmentObject(model)
             }
         }
@@ -40,13 +38,40 @@ struct RootView: View {
                     .font(.system(size: 13, weight: .medium))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(ReviewerPalette.ink, in: Capsule())
-                    .foregroundStyle(.white)
+                    .background(ReviewerPalette.raised, in: Capsule())
+                    .foregroundStyle(ReviewerPalette.ink)
                     .padding(.bottom, 18)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(.easeInOut(duration: 0.2), value: model.notice)
+    }
+
+    @ViewBuilder
+    private var exportOverlay: some View {
+        if model.showExport, let session = model.activeSession {
+            GeometryReader { geometry in
+                ZStack {
+                    Color.black.opacity(0.28)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture { model.showExport = false }
+                        .accessibilityHidden(true)
+
+                    ExportView(session: session) {
+                        model.showExport = false
+                    }
+                    .environmentObject(model)
+                    .frame(
+                        width: min(max(geometry.size.width - 48, 920), 1480),
+                        height: min(max(geometry.size.height - 48, 640), 1100)
+                    )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .transition(.opacity)
+            .zIndex(10)
+        }
     }
 }
 
@@ -76,8 +101,7 @@ private struct SessionLibraryView: View {
                             Label("New session", systemImage: "plus")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(ReviewerPalette.ink)
+                        .buttonStyle(ReviewerPrimaryButtonStyle())
                         .keyboardShortcut("n", modifiers: [.command])
                     }
 
@@ -103,13 +127,14 @@ private struct SessionLibraryView: View {
                     HStack(spacing: 12) {
                         Button("Restore from backup…") { showRestorePicker = true }
                             .buttonStyle(.link)
+                            .tint(ReviewerPalette.link)
                         Text("Backups restore as separate sessions.")
                             .font(.system(size: 12))
                             .foregroundStyle(ReviewerPalette.muted)
                     }
                 }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 32)
+                .padding(.horizontal, 50)
+                .padding(.vertical, 26)
                 .frame(maxWidth: 1420, alignment: .topLeading)
                 .frame(maxWidth: .infinity, alignment: .top)
             }
@@ -148,23 +173,24 @@ private struct SessionLibraryView: View {
     private var libraryHeader: some View {
         HStack {
             HStack(spacing: 10) {
-                AppLogo(size: 36)
+                AppLogo(size: 24)
                 Text("Flashcard Reviewer")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(ReviewerPalette.ink)
             }
             Spacer()
+            AppearanceToggle()
             saveStatus
         }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 18)
+        .padding(.horizontal, 50)
+        .padding(.vertical, 12)
         .frame(maxWidth: 1420)
         .frame(maxWidth: .infinity)
-        .background(ReviewerPalette.surface)
+        .background(ReviewerPalette.sidebar)
     }
 
     private var sessionColumns: [GridItem] {
-        [GridItem(.adaptive(minimum: 560), spacing: 16, alignment: .top)]
+        [GridItem(.adaptive(minimum: 450), spacing: 16, alignment: .top)]
     }
 
     private var saveStatus: some View {
@@ -208,8 +234,7 @@ private struct SessionLibraryView: View {
                     .foregroundStyle(ReviewerPalette.muted)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Create your first session") { model.showNewSession = true }
-                    .buttonStyle(.borderedProminent)
-                    .tint(ReviewerPalette.ink)
+                    .buttonStyle(ReviewerPrimaryButtonStyle())
                     .padding(.top, 4)
             }
             .frame(maxWidth: 460, alignment: .leading)
@@ -258,7 +283,7 @@ private struct SessionLibraryView: View {
                 Button("Retry") { model.retrySave() }
                     .buttonStyle(.bordered)
                 Button("Download backup") { model.downloadBackup(for: session) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
                     .tint(ReviewerPalette.red)
             }
         }
@@ -269,13 +294,14 @@ private struct SessionLibraryView: View {
     }
 
     private func sessionRow(_ session: FlashcardSession) -> some View {
-        SurfaceCard {
-            VStack(alignment: .leading, spacing: 11) {
+        SurfaceCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .top, spacing: 10) {
                     if renamingSessionID == session.id {
                         TextField("Session name", text: $titleDraft)
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 15, weight: .semibold))
+                            .background(ReviewerPalette.input, in: RoundedRectangle(cornerRadius: 6))
                             .onSubmit { saveRename(session.id) }
                     } else {
                         Text(session.title)
@@ -289,7 +315,7 @@ private struct SessionLibraryView: View {
                         .foregroundStyle(ReviewerPalette.muted)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(ReviewerPalette.grayWash, in: Capsule())
+                        .background(ReviewerPalette.raised, in: Capsule())
                 }
 
                 Text("\(session.cards.filter { $0.verdict != .unreviewed }.count) reviewed · Last used \(session.updatedAt.formatted(date: .abbreviated, time: .shortened))")
@@ -308,8 +334,7 @@ private struct SessionLibraryView: View {
                     Spacer(minLength: 0)
                     if renamingSessionID == session.id {
                         Button("Save") { saveRename(session.id) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(ReviewerPalette.ink)
+                            .buttonStyle(ReviewerPrimaryButtonStyle())
                             .controlSize(.small)
                         Button("Cancel") { renamingSessionID = nil }
                             .buttonStyle(.plain)
@@ -328,8 +353,7 @@ private struct SessionLibraryView: View {
                     .buttonStyle(.plain)
                     .help("Delete session")
                     Button("Resume") { model.openSession(session.id) }
-                        .buttonStyle(.borderedProminent)
-                        .tint(ReviewerPalette.ink)
+                        .buttonStyle(ReviewerPrimaryButtonStyle())
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -402,7 +426,7 @@ private struct CardImportView: View {
                 .font(.system(size: 13, design: .monospaced))
                 .scrollContentBackground(.hidden)
                 .padding(8)
-                .background(ReviewerPalette.surface, in: RoundedRectangle(cornerRadius: 10))
+                .background(ReviewerPalette.input, in: RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.line, lineWidth: 1))
                 .frame(minHeight: 200, maxHeight: .infinity)
                 .accessibilityLabel("Paste flashcards")
@@ -460,8 +484,7 @@ private struct CardImportView: View {
                     )
                     dismiss()
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(ReviewerPalette.ink)
+                .buttonStyle(ReviewerPrimaryButtonStyle())
                 .disabled(report.cards.isEmpty)
                 .keyboardShortcut(.defaultAction)
             }

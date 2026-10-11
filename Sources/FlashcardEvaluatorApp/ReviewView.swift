@@ -5,9 +5,19 @@ struct ReviewView: View {
     @EnvironmentObject private var model: AppModel
     let sessionID: UUID
 
+    @State private var reviewMode: ReviewMode = .review
+    @State private var answerRevealed = false
+    @State private var filtersExpanded = false
     @State private var showOriginal = false
     @State private var replacementFlow = false
     @FocusState private var focusedEditor: EditorField?
+
+    private enum ReviewMode {
+        case review
+        case flashcard
+
+        var title: String { self == .review ? "Review" : "Flashcard" }
+    }
 
     private enum EditorField: Hashable {
         case front
@@ -15,14 +25,12 @@ struct ReviewView: View {
         case notes
     }
 
+    private var isFlashcardMode: Bool { reviewMode == .flashcard }
+    private var canCommitVerdict: Bool { !isFlashcardMode || answerRevealed }
+
     private var session: FlashcardSession? {
         guard model.activeSession?.id == sessionID else { return nil }
         return model.activeSession
-    }
-
-    private var cardNumber: Int? {
-        guard let card = model.activeCard, let session else { return nil }
-        return session.cards.firstIndex(where: { $0.id == card.id }).map { $0 + 1 }
     }
 
     var body: some View {
@@ -33,13 +41,16 @@ struct ReviewView: View {
             }
             HStack(spacing: 0) {
                 sidebar
-                    .frame(width: 258)
+                    .frame(width: 210)
                 Rectangle()
                     .fill(ReviewerPalette.line)
                     .frame(width: 1)
-                detailPane
+                VStack(spacing: 0) {
+                    detailPane
+                    actionBar
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            actionBar
         }
         .background(ReviewerPalette.canvas)
         .background {
@@ -53,8 +64,23 @@ struct ReviewView: View {
         }
         .onChange(of: model.selectedCardID) { _, _ in
             replacementFlow = false
+            answerRevealed = false
             showOriginal = false
             focusedEditor = nil
+        }
+        .onChange(of: sessionID) { _, _ in
+            reviewMode = .review
+            answerRevealed = false
+            filtersExpanded = false
+            showOriginal = false
+            replacementFlow = false
+            focusedEditor = nil
+        }
+        .onChange(of: model.showExport) { _, isShowing in
+            if isShowing {
+                focusedEditor = nil
+                model.finishAnyEditGroups()
+            }
         }
         .sheet(isPresented: $model.showShortcuts) {
             shortcutsSheet
@@ -73,16 +99,16 @@ struct ReviewView: View {
                     bad: session.cards.filter { $0.verdict == .bad }.count,
                     unreviewed: session.cards.filter { $0.verdict == .unreviewed }.count
                 )
-                .frame(width: 190)
+                .frame(width: 160)
             }
 
             headerActions
-                .frame(minWidth: 0, maxWidth: .infinity, alignment: .trailing)
+                .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 13)
+        .padding(.trailing, 22)
+        .frame(height: 72)
         .background(ReviewerPalette.surface)
-        .overlay(alignment: .bottom) { ReviewerPalette.line.frame(height: 1) }
+        .overlay(alignment: .bottom) { ReviewerPalette.border.frame(height: 1) }
     }
 
     private var headerNavigation: some View {
@@ -94,9 +120,13 @@ struct ReviewView: View {
                     Text("Sessions")
                         .font(.system(size: 13, weight: .medium))
                 }
+                .padding(.leading, 22)
+                .frame(width: 148, height: 72, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(ReviewerPalette.muted)
+            .accessibilityHint("Return to the session list")
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(session?.title ?? "Review")
@@ -116,43 +146,114 @@ struct ReviewView: View {
 
     private var headerActions: some View {
         HStack(spacing: 12) {
-            saveStatus
+            AppearanceToggle()
+            reviewModePicker
+
             Button {
                 focusedEditor = nil
                 model.finishAnyEditGroups()
                 model.showAddCards = true
             } label: {
                 Label("Add cards", systemImage: "plus")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(ReviewerPalette.ink)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(ReviewerPalette.raised, in: RoundedRectangle(cornerRadius: 7))
+                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(ReviewerPalette.border, lineWidth: 1))
             }
-            .buttonStyle(.bordered)
-            Button("Export") { model.showExport = true }
-                .buttonStyle(.borderedProminent)
-                .tint(ReviewerPalette.ink)
-            Button { model.showShortcuts = true } label: {
+            .buttonStyle(.plain)
+            Button { model.showExport = true } label: {
+                Text("Export")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ReviewerPalette.onPrimaryButton)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(ReviewerPalette.primaryButton, in: RoundedRectangle(cornerRadius: 7))
+            }
+            .buttonStyle(.plain)
+            Menu {
+                Button { model.moveSelection(by: -1) } label: {
+                    Label("Previous card", systemImage: "chevron.left")
+                }
+                .disabled(model.visibleCards.isEmpty)
+                Button { model.moveSelection(by: 1) } label: {
+                    Label("Next card", systemImage: "chevron.right")
+                }
+                .disabled(model.visibleCards.isEmpty)
+                Divider()
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) { showOriginal.toggle() }
+                } label: {
+                    Label(showOriginal ? "Hide original / changes" : "Show original / changes", systemImage: "arrow.uturn.backward")
+                }
+                .disabled(model.activeCard == nil || (isFlashcardMode && !answerRevealed))
+                if let card = model.activeCard, card.front != card.originalFront || card.back != card.originalBack {
+                    Button("Restore original", action: restoreOriginalText)
+                }
+                if let card = model.activeCard, card.verdict != .unreviewed {
+                    Button("Mark unreviewed", action: markUnreviewed)
+                }
+                Button { model.undo() } label: {
+                    Label("Undo", systemImage: "arrow.uturn.backward")
+                }
+                .disabled(!model.canUndo)
+                Divider()
+                Button { model.showShortcuts = true } label: {
+                    Label("Keyboard shortcuts…", systemImage: "keyboard")
+                }
+            } label: {
                 Image(systemName: "keyboard")
             }
             .buttonStyle(.plain)
-            .foregroundStyle(ReviewerPalette.muted)
-            .help("Keyboard shortcuts")
+            .foregroundStyle(ReviewerPalette.text2)
+            .accessibilityLabel("Review actions and keyboard shortcuts")
+            .help("Review actions and keyboard shortcuts")
         }
     }
 
-    @ViewBuilder
-    private var saveStatus: some View {
-        switch model.saveState {
-        case .saved:
-            Label("Saved on this Mac", systemImage: "checkmark.circle.fill")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(ReviewerPalette.green)
-        case .saving:
-            Label("Saving…", systemImage: "arrow.triangle.2.circlepath")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(ReviewerPalette.muted)
-        case .failed:
-            Label("Not saved", systemImage: "exclamationmark.circle.fill")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(ReviewerPalette.red)
+    private var reviewModePicker: some View {
+        HStack(spacing: 2) {
+            reviewModeButton(.review, symbol: "pencil", shortcut: "⌘1")
+            reviewModeButton(.flashcard, symbol: "rectangle.on.rectangle", shortcut: "⌘2")
         }
+        .padding(3)
+        .background(ReviewerPalette.input, in: RoundedRectangle(cornerRadius: 9))
+        .overlay(RoundedRectangle(cornerRadius: 9).stroke(ReviewerPalette.border, lineWidth: 1))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Review mode")
+    }
+
+    private func reviewModeButton(_ mode: ReviewMode, symbol: String, shortcut: String) -> some View {
+        let selected = reviewMode == mode
+        return Button { setReviewMode(mode) } label: {
+            HStack(spacing: 7) {
+                Image(systemName: symbol)
+                    .font(.system(size: 11, weight: .medium))
+                Text(mode.title)
+                    .font(.system(size: 12, weight: selected ? .semibold : .medium))
+                Text(shortcut)
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(selected ? ReviewerPalette.text2 : ReviewerPalette.text3)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(ReviewerPalette.canvas.opacity(0.75), in: RoundedRectangle(cornerRadius: 4))
+            }
+            .foregroundStyle(selected ? ReviewerPalette.ink : ReviewerPalette.text2)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 7)
+            .background(selected ? ReviewerPalette.raised : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .overlay {
+                if selected {
+                    RoundedRectangle(cornerRadius: 7)
+                        .stroke(ReviewerPalette.borderStrong, lineWidth: 0.75)
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 7))
+        }
+        .buttonStyle(.plain)
+        .help(mode == .review ? "Review mode · ⌘1" : "Flashcard mode · ⌘2")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func saveFailureBanner(_ message: String, session: FlashcardSession) -> some View {
@@ -184,19 +285,48 @@ struct ReviewView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("FILTERS")
-                    .font(.system(size: 10, weight: .semibold))
-                    .tracking(1)
-                    .foregroundStyle(ReviewerPalette.muted)
-                ForEach(ReviewFilter.allCases) { filter in
-                    filterRow(filter)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) { filtersExpanded.toggle() }
+                } label: {
+                    HStack(spacing: 7) {
+                        Image(systemName: filtersExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .frame(width: 10)
+                            .foregroundStyle(ReviewerPalette.text3)
+                        Text("FILTERS")
+                            .font(.system(size: 9, weight: .semibold))
+                            .tracking(1)
+                            .foregroundStyle(ReviewerPalette.text3)
+                        Spacer(minLength: 5)
+                        Text("\(model.filter.title) \(count(for: model.filter))")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(ReviewerPalette.text2)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .allowsTightening(true)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 7)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Filters, \(model.filter.title), \(count(for: model.filter)) cards")
+                .accessibilityValue(filtersExpanded ? "Expanded" : "Collapsed")
+
+                if filtersExpanded {
+                    VStack(alignment: .leading, spacing: 3) {
+                        ForEach(ReviewFilter.allCases) { filter in
+                            filterRow(filter)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 7)
             .padding(.top, 17)
             .padding(.bottom, 14)
 
-            Rectangle().fill(ReviewerPalette.line).frame(height: 1)
+            Rectangle().fill(ReviewerPalette.border).frame(height: 1)
 
             HStack {
                 Text("CARDS")
@@ -252,7 +382,7 @@ struct ReviewView: View {
                 }
             }
         }
-        .background(ReviewerPalette.canvas)
+        .background(ReviewerPalette.sidebar)
     }
 
     private func filterRow(_ filter: ReviewFilter) -> some View {
@@ -273,7 +403,7 @@ struct ReviewView: View {
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 7)
-            .background(selected ? ReviewerPalette.grayWash : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .background(selected ? ReviewerPalette.selected : .clear, in: RoundedRectangle(cornerRadius: 7))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -292,7 +422,7 @@ struct ReviewView: View {
                     .padding(.top, 1)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(card.front.isEmpty ? "Untitled card" : card.front.replacingOccurrences(of: "\n", with: " "))
-                        .font(.system(size: 11, weight: selected ? .semibold : .regular))
+                        .font(.system(size: 12, weight: selected ? .semibold : .regular))
                         .foregroundStyle(ReviewerPalette.ink)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
@@ -321,9 +451,14 @@ struct ReviewView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(selected ? ReviewerPalette.surface : .clear, in: RoundedRectangle(cornerRadius: 8))
+            .background(selected ? ReviewerPalette.selected : .clear, in: RoundedRectangle(cornerRadius: 8))
             .overlay(alignment: .leading) {
-                if selected { RoundedRectangle(cornerRadius: 1).fill(ReviewerPalette.ink).frame(width: 2).padding(.vertical, 5) }
+                if selected {
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(ReviewerPalette.ink)
+                        .frame(width: 2)
+                        .padding(.vertical, 5)
+                }
             }
             .contentShape(Rectangle())
         }
@@ -331,7 +466,21 @@ struct ReviewView: View {
         .accessibilityLabel("Card \(number), \(card.verdict.label)\(card.issue == nil ? "" : ", import issue")")
         .accessibilityValue(selectedForCopy ? "Selected for copying" : "Not selected for copying")
         .accessibilityAddTraits(selectedForCopy ? .isSelected : [])
-        .help("Click to focus, then press Space to select or deselect for copying")
+        .help("Click to focus, then press Shift+Space to select or deselect for copying")
+        .contextMenu {
+            if card.front != card.originalFront || card.back != card.originalBack {
+                Button("Restore original") {
+                    model.selectCard(card.id)
+                    restoreOriginalText()
+                }
+            }
+            if card.verdict != .unreviewed {
+                Button("Mark unreviewed") {
+                    model.selectCard(card.id)
+                    markUnreviewed()
+                }
+            }
+        }
     }
 
     private var detailPane: some View {
@@ -349,21 +498,7 @@ struct ReviewView: View {
     private func cardDetail(_ card: Flashcard) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 15) {
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("CARD \(cardNumber.map { String(format: "%02d", $0) } ?? "—") · \(session?.title ?? "Study session")")
-                            .font(.system(size: 10, weight: .semibold))
-                            .tracking(0.8)
-                            .foregroundStyle(ReviewerPalette.muted)
-                        Text(card.issue == nil ? "Read both sides, then choose a verdict." : "Resolve the import split or keep this card flagged.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(ReviewerPalette.muted)
-                    }
-                    Spacer()
-                    VerdictBadge(verdict: card.verdict)
-                }
-
-                if let issue = card.issue {
+                if let issue = card.issue, !isFlashcardMode || answerRevealed {
                     issueBanner(card, issue: issue)
                 }
 
@@ -378,51 +513,95 @@ struct ReviewView: View {
                     )
                 )
 
-                sideEditor(
-                    title: "BACK",
-                    text: card.back,
-                    field: .back,
-                    card: card,
-                    binding: Binding(
-                        get: { model.activeCard?.back ?? card.back },
-                        set: { model.updateBack(card.id, text: $0) }
+                if isFlashcardMode && !answerRevealed {
+                    hiddenAnswerCard
+                } else {
+                    sideEditor(
+                        title: "BACK",
+                        text: card.back,
+                        field: .back,
+                        card: card,
+                        binding: Binding(
+                            get: { model.activeCard?.back ?? card.back },
+                            set: { model.updateBack(card.id, text: $0) }
+                        )
                     )
-                )
+                }
 
-                if showOriginal {
+                if showOriginal && (!isFlashcardMode || answerRevealed) {
                     originalsCard(card)
                 }
 
-                feedbackCard(card)
-
-                HStack(spacing: 10) {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.16)) { showOriginal.toggle() }
-                    } label: {
-                        Label(showOriginal ? "Hide original" : "Show original / changes", systemImage: "arrow.uturn.backward")
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(ReviewerPalette.muted)
-                    .font(.system(size: 11, weight: .medium))
-
-                    if card.front != card.originalFront || card.back != card.originalBack {
-                        Button("Restore original") { model.restoreOriginalText() }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(ReviewerPalette.amber)
-                            .font(.system(size: 11, weight: .semibold))
-                    }
-                    Spacer()
-                    Button("Mark unreviewed") { model.clearVerdict() }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 11))
-                        .foregroundStyle(ReviewerPalette.muted)
-                        .disabled(card.verdict == .unreviewed)
+                if card.verdict == .needsAdjustment || replacementFlow {
+                    feedbackCard(card)
                 }
             }
             .padding(22)
             .frame(maxWidth: 1100, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .top)
         }
+    }
+
+    private var hiddenAnswerCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("BACK")
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(1)
+                .foregroundStyle(ReviewerPalette.muted)
+            Text("Think through the answer, then reveal it to compare.")
+                .font(.system(size: 13))
+                .foregroundStyle(ReviewerPalette.muted)
+            Button(action: revealAnswer) {
+                Label("Show answer", systemImage: "eye")
+            }
+            .buttonStyle(ReviewerPrimaryButtonStyle())
+            .help("Reveal the back · Space")
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ReviewerPalette.card, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.border, lineWidth: 1))
+    }
+
+    private func setReviewMode(_ mode: ReviewMode) {
+        guard mode != reviewMode else { return }
+        model.finishAnyEditGroups()
+        focusedEditor = nil
+        reviewMode = mode
+        answerRevealed = false
+        showOriginal = false
+        replacementFlow = false
+    }
+
+    private func revealAnswer() {
+        answerRevealed = true
+    }
+
+    private func requireRevealedAnswerForVerdict() -> Bool {
+        guard canCommitVerdict else {
+            model.notice = "Reveal the answer before choosing a verdict"
+            return false
+        }
+        return true
+    }
+
+    private func saveRejection() {
+        guard requireRevealedAnswerForVerdict() else { return }
+        model.commitBadWithFeedback(
+            note: model.activeCard?.notes ?? "",
+            replacementRequested: model.activeCard?.replacementRequested ?? false
+        )
+        replacementFlow = false
+    }
+
+    private func markGood() {
+        guard requireRevealedAnswerForVerdict() else { return }
+        model.markGood()
+    }
+
+    private func markBad() {
+        guard requireRevealedAnswerForVerdict() else { return }
+        model.markBad()
     }
 
     private func sideEditor(
@@ -439,7 +618,7 @@ struct ReviewView: View {
                     .tracking(1)
                     .foregroundStyle(ReviewerPalette.muted)
                 Spacer()
-                Text(field == .front ? "E edits front" : "R edits back")
+                Text(field == .front ? "E edits front · Tab to back" : "R edits back · ⇧Tab to front")
                     .font(.system(size: 10))
                     .foregroundStyle(ReviewerPalette.muted)
             }
@@ -449,19 +628,11 @@ struct ReviewView: View {
                 .foregroundStyle(ReviewerPalette.ink)
                 .scrollContentBackground(.hidden)
                 .padding(10)
-                .frame(minHeight: field == .front ? 78 : 100)
-                .background(ReviewerPalette.surface, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.line, lineWidth: 1))
+                .frame(minHeight: field == .front ? 72 : 92)
+                .background(ReviewerPalette.card, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.border, lineWidth: 1))
                 .focused($focusedEditor, equals: field)
                 .accessibilityLabel(field == .front ? "Card front" : "Card back")
-                .overlay(alignment: .bottomTrailing) {
-                    Text("\(text.count) chars")
-                        .font(.system(size: 9))
-                        .foregroundStyle(ReviewerPalette.muted.opacity(0.75))
-                        .padding(8)
-                        .allowsHitTesting(false)
-                }
-
             MathPreviewView(text: text)
             ambiguousMathChoices(text: text, card: card, side: field == .front ? .front : .back)
         }
@@ -522,7 +693,7 @@ struct ReviewView: View {
                 .lineLimit(3)
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ReviewerPalette.surface, in: RoundedRectangle(cornerRadius: 6))
+                .background(ReviewerPalette.card, in: RoundedRectangle(cornerRadius: 6))
             if issue.kind == .ambiguousSplit {
                 Text("Choose the separator that divides front from back:")
                     .font(.system(size: 11, weight: .medium))
@@ -591,86 +762,100 @@ struct ReviewView: View {
             .scrollContentBackground(.hidden)
             .padding(8)
             .frame(minHeight: 62, maxHeight: 94)
-            .background(ReviewerPalette.surface, in: RoundedRectangle(cornerRadius: 8))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(ReviewerPalette.line, lineWidth: 1))
+            .background(ReviewerPalette.input, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(ReviewerPalette.border, lineWidth: 1))
             .focused($focusedEditor, equals: .notes)
             .accessibilityLabel("Adjustment notes and AI feedback")
-            Text("Notes save automatically. Press Esc to leave the textbox, then ↓ or → for the next card.")
-                .font(.system(size: 10))
-                .foregroundStyle(ReviewerPalette.muted)
         }
         .padding(13)
-        .background(ReviewerPalette.surface.opacity(0.82), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.line, lineWidth: 1))
+        .background(ReviewerPalette.card, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ReviewerPalette.border, lineWidth: 1))
     }
 
     private var actionBar: some View {
-        HStack(spacing: 9) {
-            Button { model.moveSelection(by: -1) } label: {
-                Label("Previous", systemImage: "chevron.left")
-            }
-            .buttonStyle(.bordered)
-            .disabled(model.visibleCards.isEmpty)
-            .help("Previous card · ← or ↑")
+        HStack {
+            Spacer(minLength: 0)
+            HStack(spacing: 8) {
+                reviewActionButton(
+                    "Good",
+                    symbol: "checkmark",
+                    foreground: ReviewerPalette.onPrimaryButton,
+                    background: ReviewerPalette.goodBar,
+                    enabled: model.activeCard?.canBeApproved == true && canCommitVerdict,
+                    help: isFlashcardMode && !answerRevealed ? "Reveal the answer before judging · 1" : "Mark Good and move to the next card · 1"
+                ) { markGood() }
 
-            Spacer(minLength: 8)
-
-            Button { model.markGood() } label: {
-                Label("Good", systemImage: "checkmark")
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(ReviewerPalette.green)
-            .disabled(model.activeCard?.canBeApproved != true)
-            .help("Mark Good and move to the next card · 1")
-
-            if replacementFlow {
-                Button("Save rejection") {
-                    model.commitBadWithFeedback(
-                        note: model.activeCard?.notes ?? "",
-                        replacementRequested: model.activeCard?.replacementRequested ?? false
-                    )
-                    replacementFlow = false
+                reviewActionButton(
+                    replacementFlow ? "Save rejection" : "Bad",
+                    symbol: "xmark",
+                    foreground: ReviewerPalette.red,
+                    background: ReviewerPalette.redWash,
+                    enabled: model.activeCard != nil && canCommitVerdict,
+                    help: isFlashcardMode && !answerRevealed ? "Reveal the answer before judging · 2" : (replacementFlow ? "Save rejection with feedback · ⇧2" : "Mark Bad and move to the next card · 2")
+                ) {
+                    if replacementFlow { saveRejection() } else { markBad() }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(ReviewerPalette.red)
-            } else {
-                Button { model.markBad() } label: {
-                    Label("Bad", systemImage: "xmark")
+                .contextMenu {
+                    Button("Reject with feedback…", action: beginRejectionFeedback)
                 }
-                .buttonStyle(.bordered)
-                .tint(ReviewerPalette.red)
-                .help("Mark Bad and move to the next card · 2")
-            }
 
-            Button { markNeedsAdjustment() } label: {
-                Label("Needs adjustment", systemImage: "pencil")
+                reviewActionButton(
+                    "Needs adjustment",
+                    symbol: "pencil",
+                    foreground: ReviewerPalette.amber,
+                    background: ReviewerPalette.amberWash,
+                    enabled: model.activeCard != nil && canCommitVerdict,
+                    help: isFlashcardMode && !answerRevealed ? "Reveal the answer before judging · 3" : "Mark Needs adjustment and focus feedback · 3"
+                ) { markNeedsAdjustment() }
             }
-            .buttonStyle(.bordered)
-            .tint(ReviewerPalette.amber)
-            .disabled(model.activeCard == nil)
-            .help("Mark Needs adjustment and focus feedback notes · 3")
-
-            Spacer(minLength: 8)
-
-            Button { model.moveSelection(by: 1) } label: {
-                Label("Next", systemImage: "chevron.right")
-                    .labelStyle(.titleAndIcon)
-            }
-            .buttonStyle(.bordered)
-            .disabled(model.visibleCards.isEmpty)
-            .help("Next card · → or ↓")
-
-            Button { model.undo() } label: {
-                Label("Undo", systemImage: "arrow.uturn.backward")
-            }
-            .buttonStyle(.bordered)
-            .disabled(!model.canUndo)
-            .help("Undo last card action · U")
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .background(ReviewerPalette.surface)
-        .overlay(alignment: .top) { ReviewerPalette.line.frame(height: 1) }
+        .padding(.vertical, 8)
+        .background(ReviewerPalette.canvas)
+    }
+
+    private func reviewActionButton(
+        _ title: String,
+        symbol: String,
+        foreground: Color,
+        background: Color,
+        enabled: Bool,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(foreground)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .background(background, in: RoundedRectangle(cornerRadius: 7))
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(foreground.opacity(0.18), lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: 7))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.52)
+        .help(help)
+    }
+
+    private func beginRejectionFeedback() {
+        guard model.activeCard != nil else { return }
+        replacementFlow = true
+        focusNotes()
+    }
+
+    private func restoreOriginalText() {
+        focusedEditor = nil
+        model.finishAnyEditGroups()
+        model.restoreOriginalText()
+    }
+
+    private func markUnreviewed() {
+        focusedEditor = nil
+        replacementFlow = false
+        model.clearVerdict()
     }
 
     private var endOfList: some View {
@@ -749,17 +934,21 @@ struct ReviewView: View {
             shortcutRow("2", "Mark Bad and advance")
             shortcutRow("3", "Mark Needs adjustment and focus notes")
             shortcutRow("⇧2", "Write rejection feedback")
+            shortcutRow("⌘1", "Switch to Review mode")
+            shortcutRow("⌘2", "Switch to Flashcard mode")
             shortcutRow("← / ↑", "Previous card")
             shortcutRow("→ / ↓", "Next card")
+            shortcutRow("Tab / ⇧Tab", "Move between front and back editors")
             shortcutRow("Esc", "Leave the editor; keep saved changes")
-            shortcutRow("Space", "Select or deselect the focused card")
+            shortcutRow("Space", "Show answer in Flashcard mode")
+            shortcutRow("⇧Space", "Select or deselect the focused card")
             shortcutRow("⌘C", "Copy selected cards, or the focused card")
             shortcutRow("E", "Edit the front")
             shortcutRow("R", "Edit the back")
             shortcutRow("O", "Show or hide original text")
             shortcutRow("U", "Undo the latest card change")
             shortcutRow("?", "Show this help")
-            Text("Review shortcuts pause while a text editor is focused, so typing and native undo keep working.")
+            Text("Flashcard mode hides the back until you reveal it. Verdicts require reveal. ⌘1 and ⌘2 switch modes while editing; other review shortcuts pause while you type.")
                 .font(.system(size: 11))
                 .foregroundStyle(ReviewerPalette.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -767,7 +956,7 @@ struct ReviewView: View {
             Spacer(minLength: 0)
         }
         .padding(24)
-        .frame(width: 470, height: 570)
+        .frame(width: 470, height: 600)
         .background(ReviewerPalette.canvas)
     }
 
@@ -785,7 +974,9 @@ struct ReviewView: View {
     private func handleShortcut(_ event: NSEvent) -> Bool {
         guard !model.showExport, !model.showNewSession, !model.showAddCards, !model.showShortcuts,
               !model.isShowingRestoreError, !model.isShowingLibrary else { return false }
-        if event.isARepeat { return true }
+        if event.isARepeat, !ReviewShortcutMatcher.handlesNavigationRepeat(keyCode: event.keyCode) {
+            return true
+        }
         if ReviewShortcutMatcher.copiesCards(
             characters: event.charactersIgnoringModifiers,
             modifiers: event.modifierFlags
@@ -794,14 +985,28 @@ struct ReviewView: View {
             model.copyReviewCards()
             return true
         }
+        if ReviewShortcutMatcher.switchesToReviewMode(keyCode: event.keyCode, modifiers: event.modifierFlags) {
+            setReviewMode(.review)
+            return true
+        }
+        if ReviewShortcutMatcher.switchesToFlashcardMode(keyCode: event.keyCode, modifiers: event.modifierFlags) {
+            setReviewMode(.flashcard)
+            return true
+        }
+        if focusedEditor == .front,
+           ReviewShortcutMatcher.isForwardEditorTab(keyCode: event.keyCode, modifiers: event.modifierFlags) {
+            focusedEditor = .back
+            return true
+        }
+        if focusedEditor == .back,
+           ReviewShortcutMatcher.isBackwardEditorTab(keyCode: event.keyCode, modifiers: event.modifierFlags) {
+            focusedEditor = .front
+            return true
+        }
         let modifiers = event.modifierFlags.intersection([.command, .control, .option])
         if event.keyCode == 36, !modifiers.isEmpty {
             if replacementFlow {
-                model.commitBadWithFeedback(
-                    note: model.activeCard?.notes ?? "",
-                    replacementRequested: model.activeCard?.replacementRequested ?? false
-                )
-                replacementFlow = false
+                saveRejection()
             } else {
                 focusedEditor = nil
             }
@@ -816,14 +1021,21 @@ struct ReviewView: View {
             model.showShortcuts = true
             return true
         }
+        if ReviewShortcutMatcher.selectsCopySelection(keyCode: event.keyCode, modifiers: event.modifierFlags) {
+            model.toggleCopySelection()
+            return true
+        }
+        if ReviewShortcutMatcher.isUnmodifiedSpace(keyCode: event.keyCode, modifiers: event.modifierFlags),
+           isFlashcardMode, model.activeCard != nil, !answerRevealed {
+            revealAnswer()
+            return true
+        }
         guard modifiers.isEmpty else { return false }
         let shiftDown = event.modifierFlags.contains(.shift)
         let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
 
         if ReviewShortcutMatcher.startsReplacementFlow(keyCode: event.keyCode, modifiers: event.modifierFlags) {
-            guard model.activeCard != nil else { return true }
-            replacementFlow = true
-            focusNotes()
+            beginRejectionFeedback()
             return true
         }
         if shiftDown { return false }
@@ -831,13 +1043,15 @@ struct ReviewView: View {
             model.moveSelection(by: direction)
             return true
         }
-        if event.keyCode == 49 { model.toggleCopySelection(); return true }
         switch key {
-        case "1": model.markGood(); return true
-        case "2": model.markBad(); return true
+        case "1": markGood(); return true
+        case "2": markBad(); return true
         case "3": markNeedsAdjustment(); return true
         case "e": focusedEditor = .front; return true
-        case "r": focusedEditor = .back; return true
+        case "r":
+            if isFlashcardMode && !answerRevealed { return true }
+            focusedEditor = .back
+            return true
         case "o": showOriginal.toggle(); return true
         case "u": model.undo(); return true
         default: return false
@@ -845,7 +1059,7 @@ struct ReviewView: View {
     }
 
     private func markNeedsAdjustment() {
-        guard model.activeCard != nil else { return }
+        guard model.activeCard != nil, requireRevealedAnswerForVerdict() else { return }
         replacementFlow = false
         model.markNeedsAdjustment()
         focusNotes()
@@ -876,6 +1090,44 @@ struct ReviewView: View {
 }
 
 enum ReviewShortcutMatcher {
+    static func handlesNavigationRepeat(keyCode: UInt16) -> Bool {
+        navigationDelta(keyCode: keyCode) != nil
+    }
+
+    static func isForwardEditorTab(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 48
+            && modifiers.intersection([.command, .control, .option, .shift]).isEmpty
+    }
+
+    static func isBackwardEditorTab(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 48
+            && modifiers.contains(.shift)
+            && modifiers.intersection([.command, .control, .option]).isEmpty
+    }
+
+    static func switchesToReviewMode(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 18 && isCommandNumberShortcut(modifiers)
+    }
+
+    static func switchesToFlashcardMode(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 19 && isCommandNumberShortcut(modifiers)
+    }
+
+    private static func isCommandNumberShortcut(_ modifiers: NSEvent.ModifierFlags) -> Bool {
+        modifiers.intersection([.command, .control, .option, .shift]) == .command
+    }
+
+    static func isUnmodifiedSpace(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 49
+            && modifiers.intersection([.command, .control, .option, .shift]).isEmpty
+    }
+
+    static func selectsCopySelection(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
+        keyCode == 49
+            && modifiers.contains(.shift)
+            && modifiers.intersection([.command, .control, .option]).isEmpty
+    }
+
     static func navigationDelta(keyCode: UInt16) -> Int? {
         switch keyCode {
         case 123, 126: -1
@@ -932,7 +1184,14 @@ private struct ReviewShortcutMonitor: NSViewRepresentable {
                 guard NSApp.modalWindow == nil else { return event }
                 let commitsFeedback = event.keyCode == 36
                     && !event.modifierFlags.intersection([.command, .control]).isEmpty
-                if event.keyCode == 53 || commitsFeedback {
+                let switchesReviewMode = ReviewShortcutMatcher.switchesToReviewMode(
+                    keyCode: event.keyCode,
+                    modifiers: event.modifierFlags
+                ) || ReviewShortcutMatcher.switchesToFlashcardMode(
+                    keyCode: event.keyCode,
+                    modifiers: event.modifierFlags
+                )
+                if event.keyCode == 53 || event.keyCode == 48 || commitsFeedback || switchesReviewMode {
                     return self.onKey(event) ? nil : event
                 }
                 if let responder = event.window?.firstResponder,
